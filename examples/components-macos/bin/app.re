@@ -1,57 +1,87 @@
 open Brisk_macos;
 
+type tab =
+  | Welcome
+  | Views
+  | Buttons
+  | Text
+  | Image
+  | System;
+
+type tabItem = {
+  kind: tab,
+  label: string,
+};
+
+let tabs = [
+  {kind: Welcome, label: "Welcome"},
+  {kind: Views, label: "Views"},
+  {kind: Buttons, label: "Buttons"},
+  {kind: Text, label: "Text"},
+  {kind: Image, label: "Image"},
+];
+
+type state = {currentTab: tab};
+
 module Component = {
   let component = Brisk.component("Other");
   let createElement = (~children as _, ()) =>
     component(slots => {
       open Brisk.Layout;
       let (state, setState, _slots: Brisk.Hooks.empty) =
-        Brisk.Hooks.state(None, slots);
-      switch (state) {
-      | Some(code) =>
+        Brisk.Hooks.state({currentTab: Welcome}, slots);
+
+      let {currentTab} = state;
+
+      <View
+        style=[
+          position(~top=0., ~left=0., ~right=0., ~bottom=0., `Absolute),
+          flexDirection(`Row),
+        ]>
         <EffectView
           style=EffectView.[
-            position(~top=0., ~left=0., ~right=0., ~bottom=0., `Absolute),
             blendingMode(`BehindWindow),
+            position(~top=0., ~left=0., ~bottom=0., `Absolute),
+            width(185.),
           ]>
-          <Button
-            style=[width(100.), height(100.), align(`Center)]
-            title={string_of_int(code)}
-            callback={() => setState(None)}
-          />
-          <Button
-            style=[width(100.), height(100.), align(`Center)]
-            title="Cell two"
-            callback={() => setState(None)}
-          />
+          <View style=[margin2(~v=37., ())]>
+            ...{
+                 tabs
+                 |> List.map(tab =>
+                      <Text
+                        style=[
+                          font(~size=15., ()),
+                          kern(0.09),
+                          align(`Left),
+                          color(Color.hex("#282522")),
+                          background(
+                            tab.kind == currentTab
+                              ? Color.hexa("#000000", 0.4) : Color.transparent,
+                          ),
+                          padding2(~h=25., ~v=4., ()),
+                        ]
+                        value={tab.label}
+                      />
+                    )
+               }
+          </View>
         </EffectView>
-      | None =>
         <ScrollView
           style=[
-            position(~top=0., ~left=0., ~right=0., ~bottom=0., `Absolute),
-            background(Color.hex("#f7f8f9")),
+            position(~top=0., ~left=185., ~right=0., ~bottom=0., `Absolute),
+            padding4(~top=20., ~left=13., ()),
           ]>
           <Text
             style=[
-              font(~size=24., ~weight=`Medium, ()),
-              kern(0.5),
-              align(`Center),
-              color(Color.hex("#ffffff")),
-              background(Color.hex("#263ac5")),
-              padding(10.),
+              font(~size=24., ~weight=`Semibold, ()),
+              kern(0.58),
+              align(`Left),
+              color(Color.hex("#000000")),
+              background(Color.transparent),
             ]
             value="Welcome to Brisk"
           />
-          <View
-            style=[
-              justifyContent(`Center),
-              alignContent(`Center),
-              background(Color.hex("#eeeeee")),
-            ]>
-            <Image
-              style=[margin4(~top=10., ()), alignSelf(`Center)]
-              source={`Bundle("reason")}
-            />
+          <View style=[justifyContent(`Center), alignContent(`Center)]>
             <Text
               style=[
                 font(~size=18., ()),
@@ -82,23 +112,21 @@ module Component = {
             callback={() =>
               Lwt.Infix.(
                 ignore(
-                  Lwt_unix.sleep(1.)
-                  >>= (_ => Lwt.return(setState(Some(100)))),
+                  Lwt_unix.sleep(1.) >>= (_ => Lwt.return(setState(state))),
                 )
               )
             }
           />
-          <View style=[alignContent(`Center), height(900.)]>
+          <View style=[alignContent(`Center), height(600.)]>
             <Text
               style=[
                 font(~size=18., ()),
                 align(`Center),
                 alignSelf(`Center),
                 width(200.),
-                height(600.),
+                height(300.),
                 border(~radius=10., ()),
                 color(Color.hex("#011021")),
-                background(Color.hex("#f0f0f0")),
                 margin(20.),
                 padding2(~h=10., ~v=10., ()),
               ]
@@ -106,7 +134,7 @@ module Component = {
             />
           </View>
         </ScrollView>
-      };
+      </View>;
     });
 };
 
